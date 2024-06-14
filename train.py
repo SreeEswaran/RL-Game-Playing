@@ -1,6 +1,6 @@
 import numpy as np
-from environment.py import SimpleGame
-from agent.py import QLearningAgent
+from environment import SimpleGame
+from agent import QLearningAgent
 import os
 
 def train_agent(episodes=1000):
