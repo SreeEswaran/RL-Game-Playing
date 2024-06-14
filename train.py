@@ -1,24 +1,35 @@
-import torch
-import gym
-from utils.agent import DQNAgent
-from utils.environment import make_env
-from config import EPISODES, LR, GAMMA, EPSILON_DECAY
+import numpy as np
+from environment.py import SimpleGame
+from agent.py import QLearningAgent
+import os
 
-def train():
-    env = make_env()
-    agent = DQNAgent(env.action_space.n)
-    optimizer = torch.optim.Adam(agent.model.parameters(), lr=LR)
+def train_agent(episodes=1000):
+    env = SimpleGame()
+    agent = QLearningAgent(state_size=11, action_size=2)
+    log = []
 
-    for episode in range(EPISODES):
+    for episode in range(episodes):
         state = env.reset()
-        done = False
-        while not done:
-            action = agent.select_action(state)
-            next_state, reward, done, _ = env.step(action)
-            agent.memory.push(state, action, reward, next_state, done)
-            agent.optimize(optimizer, GAMMA)
+        total_reward = 0
+        
+        while True:
+            action = agent.choose_action(state)
+            next_state, reward, done = env.step(action)
+            agent.learn(state, action, reward, next_state)
             state = next_state
+            total_reward += reward
+            
             if done:
-                print(f"Episode {episode} finished")
+                break
+                
+        log.append(total_reward)
+        print(f"Episode: {episode+1}, Total Reward: {total_reward}")
 
-if __name__ ==
+    os.makedirs('results', exist_ok=True)
+    np.save('results/model.npy', agent.q_table)
+    with open('results/training_log.txt', 'w') as f:
+        for reward in log:
+            f.write(f"{reward}\n")
+
+if __name__ == "__main__":
+    train_agent()
